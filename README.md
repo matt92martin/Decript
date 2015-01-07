@@ -7,6 +7,7 @@ Ported most of Minh's clips
 
 clone repo or download and put it in your sublime Text 2/Packages folder
 Windows 7 Default path (C:\Users\yourUserName\AppData\Roaming\Sublime Text 2\Packages)
+Ubuntu Default path (~/.config/sublime-text-2)
 
 How to call the clips/snippets
 You can define your own keymappings in (Default (Linux or Windows).sublime-keymap)
