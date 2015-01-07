@@ -4,6 +4,11 @@ Decript
 create XML tags like notetab plus
 
 clone repo or download and put it in your sublime Text 2/Packages folder
+Windows 7 Default path (C:\Users\yourUserName\AppData\Roaming\Sublime Text 2\Packages)
 
-Short cuts are only set up for windows but assume copy paste them to linux setting and they should work 
-Default (Linux).sublime-keymap
+
+
+
+for python and JS syntax highlighting add this to your XML.tmLanguage
+https://gist.github.com/krasserp/3de245d8f3d954303f0f
+Windows 7 Default path (C:\Users\yourUserName\AppData\Roaming\Sublime Text 2\Packages\XML
