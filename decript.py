@@ -66,12 +66,11 @@ def newSurvey():
                  alt=""
                  autosave="0"
                  extraVariables="source,list,url,record,ipAddress,userAgent,decLang"
-                 compat="125"
+                 compat="127"
                  builderCompatible="1"
                  secure="0"
                  setup="time,term,quota,decLang"
                  ss:disableBackButton="1"
-                 unique=""
                  mobile="compat"
                  mobileDevices="smartphone,tablet,featurephone,desktop"
                  state="testing">
@@ -224,7 +223,7 @@ def newSurveyFMA():
              alt=""
              autosave="0"
              extraVariables="source,list,url,record,ipAddress,userAgent,decLang"
-             compat="125"
+             compat="124"
              builderCompatible="1"
              secure="0"
              state="testing"
@@ -376,6 +375,12 @@ def newSurveyGMI():
                 </survey>"""
     return[HEADER,FOOTER]
 
+def fixUniCode(input):
+    input = input.replace(u"\u2019", "'").replace(u"\u2018", "'").replace(u"\u201C", "\"").replace(u"\u201D", "\"")
+    input = re.sub('&\s', '&amp; ',input)
+    return input
+
+
 #need to find a better solution for the surveyType set up
 class setSurveyType(sublime_plugin.TextCommand):
     def run(self, edit):
@@ -478,7 +483,7 @@ class makeRadioCommand(sublime_plugin.TextCommand):
 
                     if ("<row" in output) and not ("<col" in output):
                         rowlegend=' rowLegend=\"right\"'
-                        print 'add row legent!!!!!!'
+                        print 'add row legend!!!!!!'
                     # compose our new radio question
                     if "<comment>" not in input:
                       printPage = "<radio label=\"%s\"%s>\n  <title>%s</title>\n  %s  %s\n</radio>\n<suspend/>" % (label.strip(), rowlegend, title.strip(), comment, output)
@@ -651,8 +656,9 @@ class makeCheckboxCommand(sublime_plugin.TextCommand):
                 output2 = input
 
                 nota_array = [">None of the above",">None of these"]
+                notAns = "<noanswer>"
                 for nota in nota_array:
-                  if nota in output2:
+                  if nota in output2 and not notAns:
                     repwith = " exclusive=\"1\" randomize=\"0\"" + nota
                     output = output2.replace(nota,repwith)
                     output2 = output
@@ -898,6 +904,7 @@ class makeRowCommand(sublime_plugin.TextCommand):
 
                 #CLEAN UP THE EXTRA LINE BREAKS
                 input = re.sub("\n{2,}", "\n", input)
+                input = fixUniCode(input)
 
                 input = input.strip().split("\n")
                 #ebay has a different openSize
@@ -909,6 +916,7 @@ class makeRowCommand(sublime_plugin.TextCommand):
                 for x in input:
 
                     if "other" in input[count].strip().lower() and "specify" in input[count].strip().lower():
+                      input[count] = input[count].strip().replace("_", "")
                       extra=' open=\"1\" openSize=\"'+openSize+'\" randomize=\"0\"'
                     else:
                       extra = ''
@@ -940,6 +948,7 @@ class makeRowrCommand(sublime_plugin.TextCommand):
 
                 #CLEAN UP THE EXTRA LINE BREAKS
                 input = re.sub("\n{2,}", "\n", input)
+                input = fixUniCode(input)
 
                 input = input.strip().split("\n")
                 #ebay has a different openSize
@@ -953,6 +962,7 @@ class makeRowrCommand(sublime_plugin.TextCommand):
                 for x in input:
                     
                     if "other" in input[count-1].strip().lower() and "specify" in input[count-1].strip().lower():
+                      input[count-1] = input[count-1].replace("_", "")
                       extra=' open=\"1\" openSize=\"'+openSize+'\" randomize=\"0\"'
                     else:
                       extra = ''
@@ -966,12 +976,6 @@ class makeRowrCommand(sublime_plugin.TextCommand):
             print e
 
 
-
-
-
-
-
-
 class makeRowsMatchLabelCommand(sublime_plugin.TextCommand):
     def run (self,edit):
         try:
@@ -982,7 +986,8 @@ class makeRowsMatchLabelCommand(sublime_plugin.TextCommand):
             #print self.view.settings()
             for sel in sels:
                 printPage = ''
-                input = self.view.substr(sel)
+                input = self.view.substr(sel).strip()
+                input = fixUniCode(input)
                 #SPLIT UP INTO ROWS
                 input = input.split("\n")
                 #ebay has a different openSize
@@ -1008,6 +1013,7 @@ class makeRowsMatchLabelCommand(sublime_plugin.TextCommand):
                      extra=""
 
                      if "other" in content.lower() and "specify" in content.lower():
+                       content = content.replace("_", "")
                        extra=' open=\"1\" openSize=\"'+openSize+'\" randomize=\"0\"'
 
                      #COMPOSE ROW
@@ -1036,33 +1042,35 @@ class makeRowsMatchValuesCommand(sublime_plugin.TextCommand):
             for sel in sels:
                 printPage = ''
                 input = self.view.substr(sel)
+                input = fixUniCode(input)
                 #SPLIT UP INTO ROWS
                 input = input.split("\n")
                 #ebay has a different openSize
                 openSize =  '45' if docType =='EBA' else '25'
                 #ITERATE ROWS
                 for line in input:
-                     line = line.strip()
-                     print line
-                     #SPLIT ON WHITESPACE -- REMOVE LEADING AND TRAILING WS
-                     parts = re.split(r"\s",line,1) 
+                    line = line.strip()
+                    print line
+                    #SPLIT ON WHITESPACE -- REMOVE LEADING AND TRAILING WS
+                    parts = re.split(r"\s",line,1) 
 
-                     #GET RID OF EXTRA SPACES
-                     ordinal= parts[0].strip()
-                     ordinal= ordinal.rstrip('.')
-                     ordinal= ordinal.rstrip(')')
+                    #GET RID OF EXTRA SPACES
+                    ordinal= parts[0].strip()
+                    ordinal= ordinal.rstrip('.')
+                    ordinal= ordinal.rstrip(')')
 
-                     #GET RID OF EXTRA SPACES
-                     if len(parts) == 2:
-                       content = parts[1].strip()
+                    #GET RID OF EXTRA SPACES
+                    if len(parts) == 2:
+                        content = parts[1].strip()
 
-                     extra=""
+                    extra=""
 
-                     if "other" in content.lower() and "specify" in content.lower():
-                       extra=' open=\"1\" openSize=\"'+openSize+'\" randomize=\"0\"'
+                    if "other" in content.lower() and "specify" in content.lower():
+                        content = content.replace("_", "")
+                        extra=' open=\"1\" openSize=\"'+openSize+'\" randomize=\"0\"'
 
-                     #COMPOSE ROW
-                     printPage += "  <row label=\"r%s\" value=\"%s\"%s>%s</row>\n" % (ordinal,ordinal, extra, content)
+                    #COMPOSE ROW
+                    printPage += "  <row label=\"r%s\" value=\"%s\"%s>%s</row>\n" % (ordinal,ordinal, extra, content)
 
                 self.view.replace(edit,sel, printPage)
         except Exception, e:
@@ -1084,19 +1092,24 @@ class makeColsCommand(sublime_plugin.TextCommand):
                 input = re.sub("\n +\n", "\n\n", input)
                 #CLEAN UP THE EXTRA LINE BREAKS
                 input = re.sub("\n{2,}", "\n", input)
+                input = fixUniCode(input)
                 input = input.strip().split("\n")
                 #start from output = to fill this class
                 for x in range(0,len(input)):
                     input[x] = re.sub("^[a-zA-Z0-9]{1,2}[\.:\)][ \t]+", "\n", input[x])
+                    input[x] = re.sub(r"^([0-9]{1,3})[\t\s.:)]([a-zA-Z0-9\s\'\"]+)$", r"\2<br/> \1", input[x])
                 count = 0
                 for x in input:
-                  if "other" in input[count].strip().lower() and "specify" in input[count].strip().lower():
-                    extra=' open=\"1\" openSize=\"10\" randomize=\"0\"'
-                  else:
-                    extra = ''
+                    if "other" in input[count].strip().lower() and "specify" in input[count].strip().lower():
+                        input[count] = input[count].strip().replace("_", "")
+                        extra=' open=\"1\" openSize=\"10\" randomize=\"0\"'
+                        printPage += "  <col label=\"c%s\"%s>%s</col>\n" % (str(count+1), extra, input[count].strip())
+                        count += 1
+                    else:
+                        extra = ''
 
-                    printPage += "  <col label=\"c%s\"%s>%s</col>\n" % (str(count+1), extra, input[count].strip())
-                    count += 1
+                        printPage += "  <col label=\"c%s\"%s>%s</col>\n" % (str(count+1), extra, input[count].strip())
+                        count += 1
 
                 self.view.replace(edit,sel, printPage)
         except Exception, e:
@@ -1113,6 +1126,7 @@ class makeColsMatchLabelCommand(sublime_plugin.TextCommand):
             for sel in sels:
                 printPage = ''
                 input = self.view.substr(sel)
+                input = fixUniCode(input)
                 input = re.sub("\t+", " ", input)
                 #CLEAN UP SPACES
                 input = re.sub("\n +\n", "\n\n", input)
@@ -1137,6 +1151,7 @@ class makeColsMatchLabelCommand(sublime_plugin.TextCommand):
                      extra=""
 
                      if "other" in content.lower() and "specify" in content.lower():
+                       content = content.replace("_", "")
                        extra=' open=\"1\" openSize=\"10\" randomize=\"0\"'
 
                      #COMPOSE ROW
@@ -1168,6 +1183,7 @@ class makeColsMatchValueCommand(sublime_plugin.TextCommand):
                 input = re.sub("\n +\n", "\n\n", input)
                 #CLEAN UP THE EXTRA LINE BREAKS
                 input = re.sub("\n{2,}", "\n", input)
+                input = fixUniCode(input)
                 input = input.strip().split("\n")
 
                 for line in input:
@@ -1186,6 +1202,7 @@ class makeColsMatchValueCommand(sublime_plugin.TextCommand):
                      extra=""
 
                      if "other" in content.lower() and "specify" in content.lower():
+                       content = content.replace("_", "")
                        extra=' open=\"1\" openSize=\"10\" randomize=\"0\"'
 
                      #COMPOSE COLUMN
@@ -1206,6 +1223,7 @@ class makeChoicesCommand(sublime_plugin.TextCommand):
             for sel in sels:
                 printPage = ''
                 input = self.view.substr(sel)
+                input = fixUniCode(input)
                 input = input.strip().split("\n")
 
                 for x in range(0,len(input)):
@@ -1227,6 +1245,9 @@ class makeCasesCommand(sublime_plugin.TextCommand):
             for sel in sels:
                 printPage = ''
                 input = self.view.substr(sel)
+                input = fixUniCode(input)
+                while '\n\n' in input:
+                    input = input.replace('\n\n', '\n')
                 input = input.strip().split("\n")
 
                 for x in range(0,len(input)):
@@ -1249,6 +1270,7 @@ class makeGroupsCommand(sublime_plugin.TextCommand):
             for sel in sels:
                 printPage = ''
                 input = self.view.substr(sel)
+                input = fixUniCode(input)
                 input = input.strip().split("\n")
 
                 for x in range(0,len(input)):
@@ -1332,6 +1354,7 @@ class makeCommentCommand(sublime_plugin.TextCommand):
             for sel in sels:
                 printPage = ''
                 input = self.view.substr(sel).strip()
+                input = fixUniCode(input)
                 input = input.replace("\n", "<br/>\n")
                 printPage = "<html label=\"\" where=\"survey\">%s</html>" % input
 
