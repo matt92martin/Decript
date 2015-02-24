@@ -655,15 +655,25 @@ class makeCheckboxCommand(sublime_plugin.TextCommand):
                 # add the all important line breakage
                 output2 = input
 
-                nota_array = [">None of the above",">None of these"]
-                notAns = "<noanswer>"
-                for nota in nota_array:
-                  if nota in output2 and not notAns:
-                    repwith = " exclusive=\"1\" randomize=\"0\"" + nota
-                    output = output2.replace(nota,repwith)
-                    output2 = output
-                  else:
-                    output = output2
+                inputSpl = output2.split('\n')
+                output2 = []
+
+                nota_array = [">None of the above",">None of these",">None of the Above",">None of These"]
+                noAns = "<noanswer"
+                for x in inputSpl:
+                    output = ""
+                    for nota in nota_array:
+                        print x
+                        if nota in x and noAns not in x:
+                            repwith = " exclusive=\"1\" randomize=\"0\"" + nota
+                            output = x.replace(nota,repwith)
+
+                    if output:
+                        output2.append(output)
+                    else:
+                        output2.append(x)
+
+                output = "\n".join(output2)
                 if docType == 'CMB':
                     # set the appropriate comment
                     comment = "<comment>Select all that apply</comment>\n"
